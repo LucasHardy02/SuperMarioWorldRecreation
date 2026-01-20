@@ -4,10 +4,14 @@ using UnityEngine.InputSystem;
 public class MarioController : MonoBehaviour
 {
     public Rigidbody2D _marioRB;
+    public Transform _groundCheck;
+    [SerializeField] private LayerMask _groundLayer;
+
     private Vector2 _moveInput;
+    private Vector2 _jumpInput;
 
     private bool _isRunning;
-    private bool _isJumping;
+    private bool _isGrounded;
     
 
     [Header("Walk/Run Values")]
@@ -16,26 +20,36 @@ public class MarioController : MonoBehaviour
 
     [Header("Jumping Values")]
     public float _jumpHeight;
+    private float _rayLength = 0.1f;
 
+    //Input
     public void OnMove(InputAction.CallbackContext context)
     {
         _moveInput = context.ReadValue<Vector2>();
     }
 
-    
+    public void MarioJump()
+    {
+ 
+        if (_isGrounded)
+        {
+            _marioRB.AddForce(_jumpHeight, ForceMode2D.Impulse);
 
+        }
+        
+
+        
+    }
+
+    //Input
     private void MovementHandler()
     {
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            _isJumping = true;
-            Debug.Log("_isJumping is true");
+            MarioJump();
         }
-        else
-        {
-            _isJumping = false;
-        }
+
+        
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             _isRunning = true;
@@ -46,19 +60,7 @@ public class MarioController : MonoBehaviour
         {
             _isRunning = false;
         }
-
-        if (_isJumping)
-        {
-            _marioRB.MovePosition(_marioRB.position + (_moveInput * _walkSpeed * _jumpHeight * Time.fixedDeltaTime));
-            _marioRB.AddForce(_moveInput * _walkSpeed * _jumpHeight * Time.fixedDeltaTime, ForceMode2D.Impulse);
-        }
-        else if (_isJumping && _isRunning)
-        {
-            _marioRB.MovePosition(_marioRB.position + (_moveInput * _runSpeed * _jumpHeight * Time.fixedDeltaTime));
-            _marioRB.AddForce(_moveInput * _jumpHeight * Time.fixedDeltaTime, ForceMode2D.Impulse);
-
-        }
-        else if (_isRunning)
+        if (_isRunning)
         {
             _marioRB.MovePosition(_marioRB.position + (_moveInput * _runSpeed * Time.fixedDeltaTime));
         }
@@ -76,6 +78,10 @@ public class MarioController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        RaycastHit2D hit = Physics2D.Raycast(_groundCheck.position, Vector2.down, _rayLength, _groundLayer);
+        _isGrounded = hit.collider != null;
+
+        Debug.DrawRay(_groundCheck.position, Vector2.down * _rayLength, Color.red);
         MovementHandler();
     }
 }
