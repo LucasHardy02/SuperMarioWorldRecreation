@@ -16,11 +16,14 @@ public class MarioController : MonoBehaviour
 
     [Header("Walk/Run Values")]
     public float _walkSpeed;
+    public float _acceleration;
     public float _runSpeed;
 
     [Header("Jumping Values")]
-    public float _jumpHeight;
+    public float _gravityScale;
+    public float _jumpForce;
     private float _rayLength = 0.1f;
+    public bool _jumpRequested;
 
     //Input
     public void OnMove(InputAction.CallbackContext context)
@@ -30,10 +33,10 @@ public class MarioController : MonoBehaviour
 
     public void MarioJump()
     {
- 
+       
         if (_isGrounded)
         {
-            _marioRB.AddForce(_jumpHeight, ForceMode2D.Impulse);
+            _marioRB.AddForceY( _jumpForce, ForceMode2D.Impulse);
 
         }
         
@@ -42,15 +45,15 @@ public class MarioController : MonoBehaviour
     }
 
     //Input
-    private void MovementHandler()
+    private void InputHandler()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            MarioJump();
+            _jumpRequested = true;
         }
 
         
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift))
         {
             _isRunning = true;
             Debug.Log("_isRunning is true");
@@ -60,28 +63,30 @@ public class MarioController : MonoBehaviour
         {
             _isRunning = false;
         }
-        if (_isRunning)
-        {
-            _marioRB.MovePosition(_marioRB.position + (_moveInput * _runSpeed * Time.fixedDeltaTime));
-        }
-        else
-        {
-            _marioRB.MovePosition(_marioRB.position +  (_moveInput * _walkSpeed * Time.fixedDeltaTime));
-        }
     }
 
     
 
     private void Update()
     {
-        
+        InputHandler();
     }
     private void FixedUpdate()
     {
+        float _speedType = _isRunning ? _runSpeed : _walkSpeed;
+
+        _marioRB.linearVelocity = new Vector2(_moveInput.x * _speedType, _marioRB.linearVelocity.y);
+
+
+        if (_jumpRequested == true)
+        {
+            MarioJump();
+            _jumpRequested = false;
+        }
+
         RaycastHit2D hit = Physics2D.Raycast(_groundCheck.position, Vector2.down, _rayLength, _groundLayer);
         _isGrounded = hit.collider != null;
 
         Debug.DrawRay(_groundCheck.position, Vector2.down * _rayLength, Color.red);
-        MovementHandler();
     }
 }
