@@ -4870,9 +4870,19 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  _walkSpeed: 0
-  _runSpeed: 0
-  _jumpHeight: 0
+  _walkSpeed: 6
+  _runSpeed: 10
+  _acceleration: 60
+  _deceleration: 80
+  _airAcceleration: 30
+  _airDeceleration: 10
+  _gravityScale: 1
+  _jumpForce: 3
+  _gravityMultiplier: 2.5
+  _lowJumpGravityMultiplier: 2
+  _coyoteTime: 0.1
+  _jumpBufferTime: 0.1
+  _maxFallSpeed: -25
 --- !u!114 &1133794572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4950,8 +4960,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1133794570}
         m_TargetAssemblyTypeName: MarioController, Assembly-CSharp
-        m_MethodName: OnMove
-        m_Mode: 0
+        m_MethodName: MarioJump
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class MarioController : MonoBehaviour
 {
@@ -14,17 +15,32 @@ public class MarioController : MonoBehaviour
     private bool _isGrounded;
     
 
-    [Header("Walk/Run Values")]
-    public float _walkSpeed;
-    public float _acceleration;
-    public float _runSpeed;
+    [Header("Movement")]
+    public float _walkSpeed = 6f;
+    public float _runSpeed = 10f;
+    public float _acceleration = 60f;
+    public float _deceleration = 80f;
+    public float _airAcceleration = 30f;
+    public float _airDeceleration = 10f;
+
 
     [Header("Jumping Values")]
-    public float _gravityScale;
-    public float _jumpForce;
+    public float _gravityScale = 4;
+    public float _jumpForce = 14;
     private float _rayLength = 0.1f;
-    public bool _jumpRequested;
+    private bool _jumpRequested;
+    public float _gravityMultiplier = 2.5f;
+    public float _lowJumpGravityMultiplier = 2f;
 
+    [Header("Forgiveness")]
+    public float _coyoteTime = 0.1f;
+    public float _jumpBufferTime = 0.1f;
+    private float _timeSinceJumpPressed;
+    private float _timeSinceLeftGround;
+
+
+    [Header("Limits")]
+    public float _maxFallSpeed = -25f;
     //Input
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -33,15 +49,14 @@ public class MarioController : MonoBehaviour
 
     public void MarioJump()
     {
-       
-        if (_isGrounded)
+        if ((_isGrounded || _timeSinceLeftGround < _coyoteTime) && _timeSinceJumpPressed < _jumpBufferTime)
         {
-            _marioRB.AddForceY( _jumpForce, ForceMode2D.Impulse);
+            _marioRB.AddForceY(_jumpForce, ForceMode2D.Impulse);
+            _timeSinceJumpPressed = 0;
+            _timeSinceLeftGround = 0;
 
         }
-        
-
-        
+       
     }
 
     //Input
@@ -50,6 +65,7 @@ public class MarioController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             _jumpRequested = true;
+            _timeSinceJumpPressed = 0;
         }
 
         
@@ -73,7 +89,21 @@ public class MarioController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        float _speedType = _isRunning ? _runSpeed : _walkSpeed;
+        if (_jumpRequested)
+        {
+            _timeSinceJumpPressed += Time.fixedDeltaTime;
+
+        }
+        else if (_isGrounded)
+        {
+            _timeSinceLeftGround = 0;
+        }
+        else
+        { 
+            _timeSinceLeftGround += Time.fixedDeltaTime;
+        }
+        
+            float _speedType = _isRunning ? _runSpeed : _walkSpeed;
 
         _marioRB.linearVelocity = new Vector2(_moveInput.x * _speedType, _marioRB.linearVelocity.y);
 
